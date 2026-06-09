@@ -175,6 +175,66 @@
     *{animation:none!important;transition:none!important}
     body::before{display:none}
   }
+
+  /* ---- explanation section ---- */
+  .explain{margin-bottom:26px}
+  .sect-label{
+    font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--green-dim);
+    text-transform:uppercase;margin:24px 0 10px;display:flex;align-items:center;gap:10px;
+  }
+  .sect-label::before{content:"//";color:var(--border)}
+  .sect-label::after{content:"";flex:1;height:1px;background:var(--border-soft)}
+
+  .card{
+    background:linear-gradient(180deg,var(--surface-2),var(--surface));
+    border:1px solid var(--border-soft);border-radius:12px;padding:16px 16px 17px;
+  }
+  .card p{font-size:14.5px;margin-bottom:11px}
+  .card p:last-child{margin-bottom:0}
+  .card b{color:var(--green);font-weight:600}
+  .card .danger{color:var(--red);font-weight:600}
+  .card .amber{color:var(--amber);font-weight:600}
+
+  .analogy{
+    border-left:2px solid var(--green-dim);padding-left:14px;margin:14px 0;
+    color:var(--text-dim);font-size:13.5px;font-style:italic;
+  }
+  .analogy b{color:var(--text);font-style:normal}
+
+  .quote{
+    background:#000;border:1px solid var(--border);border-radius:10px;
+    padding:15px 16px;font-size:14.5px;color:var(--text);
+    box-shadow:inset 0 0 22px rgba(78,227,122,.05);
+  }
+  .quote b{color:var(--green)}
+
+  ul.points{list-style:none;display:flex;flex-direction:column;gap:9px}
+  ul.points li{font-size:14px;padding-left:20px;position:relative}
+  ul.points li::before{content:"\25B8";color:var(--green);position:absolute;left:0;top:0}
+  ul.points li b{color:var(--green);font-weight:600}
+
+  table.regtab{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.regtab th,table.regtab td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--border-soft)}
+  table.regtab thead th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--green-dim);text-transform:uppercase}
+  table.regtab tr:last-child td{border-bottom:none}
+  table.regtab .reg-c{font-family:var(--mono);font-weight:700;color:var(--green);white-space:nowrap}
+  table.regtab .nick{font-family:var(--mono);color:var(--amber);white-space:nowrap}
+  table.regtab td.desc{color:var(--text)}
+
+  .golden{
+    margin-top:14px;border:1px dashed var(--amber);border-radius:10px;
+    padding:13px 15px;font-size:14px;color:var(--text);
+    background:rgba(255,193,94,.04);
+  }
+  .golden b{color:var(--amber)}
+
+  .divider-cta{
+    text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    color:var(--green-dim);text-transform:uppercase;margin:30px 0 4px;
+  }
+  .divider-cta span{display:inline-block;padding:0 12px;background:var(--bg)}
+  .divider-wrap{position:relative}
+  .divider-wrap::before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border-soft);z-index:-1}
 </style>
 </head>
 <body>
@@ -183,6 +243,50 @@
     <h1>Linkage Convention<span class="blink">_</span></h1>
     <p class="sub">Quando um programa chama outro, os dois usam as <b>mesmas 16 gavetas</b> do processador. Veja como eles combinam de não destruir o trabalho um do outro.</p>
   </header>
+
+  <section class="explain">
+
+    <div class="sect-label">O problema que a convenção resolve</div>
+    <div class="card">
+      <p>Imagine que o processador tem só <b>16 gavetas</b> (os registradores R0 a R15) para guardar coisas enquanto trabalha. São poucas, e <b>todos os programas compartilham as mesmas gavetas</b>.</p>
+      <div class="analogy">
+        Pense numa <b>cozinha compartilhada</b> com poucas panelas. O <b>Chef A</b> (seu programa principal) está cozinhando, com ingredientes dentro das panelas. Ele pede ao <b>Chef B</b> (uma sub-rotina) para fazer um molho — mas o Chef B precisa usar <b>as mesmas panelas</b>, que já têm os ingredientes do Chef A dentro!
+      </div>
+      <p>Se o Chef B simplesmente usar as panelas, ele <span class="danger">joga fora o trabalho do Chef A</span>. Quando A voltar, perdeu tudo.</p>
+      <p>A <b>solução combinada</b> — a <i>linkage convention</i> — é um acordo entre todos: <span class="amber">"antes de usar as panelas, despeje o conteúdo do outro chef em potes etiquetados. Use as panelas. No fim, devolva tudo exatamente como estava."</span> Esses "potes etiquetados" são a <b>save area</b>.</p>
+    </div>
+
+    <div class="sect-label">O porquê em uma frase</div>
+    <div class="quote">
+      O processador tem só 16 gavetas, e todos os programas compartilham elas. A linkage convention é o <b>acordo de boa educação</b> que diz: "antes de usar as gavetas de outro programa, guarde o conteúdo num lugar seguro (a save area) e devolva tudo do jeito que estava."
+    </div>
+
+    <div class="sect-label">Para que serve, na prática</div>
+    <div class="card">
+      <ul class="points">
+        <li><b>Programas se chamarem sem se atrapalharem</b> — uma sub-rotina nunca corrompe quem a chamou.</li>
+        <li><b>Passar dados</b> de um programa para outro (via R1 → lista de parâmetros).</li>
+        <li><b>Receber um resultado</b> — o código de retorno em R15: 0 = ok, 8 = erro.</li>
+        <li><b>Depurar com dumps</b> — como cada save area aponta para a anterior, dá para "rebobinar" toda a cadeia de chamadas e ver quem chamou quem.</li>
+      </ul>
+    </div>
+
+    <div class="sect-label">Os 4 registradores para decorar</div>
+    <div class="card">
+      <table class="regtab">
+        <thead><tr><th>Reg</th><th>Apelido</th><th>Para que serve</th></tr></thead>
+        <tbody>
+          <tr><td class="reg-c">R1</td><td class="nick">parâmetros</td><td class="desc">aponta para os dados de entrada</td></tr>
+          <tr><td class="reg-c">R13</td><td class="nick">save area</td><td class="desc">aponta para os "potes etiquetados"</td></tr>
+          <tr><td class="reg-c">R14</td><td class="nick">volta</td><td class="desc">o endereço de retorno</td></tr>
+          <tr><td class="reg-c">R15</td><td class="nick">entrada / RC</td><td class="desc">onde pular + o código de resultado</td></tr>
+        </tbody>
+      </table>
+      <div class="golden">Regra de ouro: <b>salve no começo (STM), restaure no fim (LM).</b></div>
+    </div>
+
+    <div class="divider-wrap"><div class="divider-cta"><span>Agora veja acontecendo ↓</span></div></div>
+  </section>
 
   <div class="progress" id="progress"></div>
 
